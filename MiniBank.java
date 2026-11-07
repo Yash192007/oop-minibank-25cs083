@@ -29,32 +29,29 @@ public class MiniBank {
         System.out.println("Welcome to " + bankInfo.name() + " (" + bankInfo.branch() + ")");
         System.out.println("========================================");
 
-        Customer.Address address = new Customer.Address("123 Station Road", "Ahmedabad", "380001");
-        Customer customer = new Customer("Aarav Sharma", "aarav@example.com", "9876543210", address);
+        System.out.println("\n--- Testing Validators ---");
+        System.out.println("Mobile (9876543210): " + Validator.isValidMobile("9876543210"));
+        System.out.println("Mobile (12345): " + Validator.isValidMobile("12345"));
 
-        Account acc1 = new Account("Aarav Sharma", 5000);
-        Account acc2 = new Account("Priya Patel", 10000);
-        Account acc3 = new Account(acc1.getAccountNumber(), "Aarav Duplicate", 5000);
+        System.out.println("Email (user@domain.com): " + Validator.isValidEmail("user@domain.com"));
+        System.out.println("Email (userdomain.com): " + Validator.isValidEmail("userdomain.com"));
 
-        System.out.println("\n--- Testing toString() ---");
-        System.out.println(acc1);
-        System.out.println(acc2);
+        System.out.println("PAN (ABCDE1234F): " + Validator.isValidPan("ABCDE1234F"));
+        System.out.println("PAN (ABC1234F): " + Validator.isValidPan("ABC1234F"));
 
-        System.out.println("\n--- Testing equals() and hashCode() ---");
-        System.out.println("acc1 equals acc2: " + acc1.equals(acc2));
-        System.out.println("acc1 equals acc3 (Same Account Number): " + acc1.equals(acc3));
+        System.out.println("IFSC (SBIN0001234): " + Validator.isValidIfsc("SBIN0001234"));
+        System.out.println("IFSC (SBIN1001234): " + Validator.isValidIfsc("SBIN1001234"));
 
-        System.out.println("\n--- Testing instanceof Operator ---");
-        Object obj1 = acc1;
-        Object obj2 = customer;
+        System.out.println("\n--- Testing CommandParser ---");
+        String sampleCommand = "DEPOSIT AC0001 500";
+        Command command = CommandParser.parse(sampleCommand);
+        System.out.println("Parsed Command Type: " + command.type());
+        System.out.println("Parsed Account Number: " + command.accountNumber());
+        System.out.println("Parsed Amount: " + command.amount());
 
-        if (obj1 instanceof Account) {
-            System.out.println("obj1 is an instance of Account: " + ((Account) obj1).getAccountNumber());
-        }
-
-        if (obj2 instanceof Customer) {
-            System.out.println("obj2 is an instance of Customer: " + ((Customer) obj2).getName() + " from " + ((Customer) obj2).getAddress());
-        }
+        System.out.println("\n--- Testing StatementFormatter ---");
+        Account testAccount = new Account("Aarav Sharma", 15000);
+        System.out.println(StatementFormatter.buildStatement(testAccount));
 
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
