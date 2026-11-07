@@ -119,6 +119,39 @@ public class MiniBank {
             System.out.println("Using a bank session resource.");
         }
 
+        System.out.println("\n--- Synchronized Threaded Deposits ---");
+        Account sharedAccount = new SavingsAccount("Concurrent Customer", 0, 0);
+        int threadCount = 10;
+        int depositsPerThread = 10_000;
+        long depositAmount = 1;
+        Thread[] depositThreads = new Thread[threadCount];
+        for (int i = 0; i < threadCount; i++) {
+            depositThreads[i] = new Thread(
+                    new AccountWorker(sharedAccount, depositsPerThread, depositAmount),
+                    "AccountWorker-" + (i + 1));
+            depositThreads[i].start();
+        }
+
+        boolean interrupted = false;
+        for (Thread depositThread : depositThreads) {
+            boolean joined = false;
+            while (!joined) {
+                try {
+                    depositThread.join();
+                    joined = true;
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                    System.out.println("Waiting for account workers to finish.");
+                }
+            }
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
+        long expectedBalance = (long) threadCount * depositsPerThread * depositAmount;
+        System.out.println("Final balance: " + sharedAccount.getBalance()
+                + " (expected " + expectedBalance + ")");
+
         System.out.println("\n--- Pattern Matching instanceof Check ---");
         for (Account acc : accounts) {
             if (acc instanceof CurrentAccount ca) {
