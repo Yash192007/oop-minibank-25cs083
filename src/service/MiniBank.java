@@ -8,6 +8,7 @@ import model.CurrentAccount;
 import model.FixedDepositAccount;
 import model.SavingsAccount;
 import model.WithdrawRule;
+import repository.Repository;
 import util.AnnotationValidator;
 import util.ReportGenerator;
 import util.StatePersister;
@@ -64,6 +65,17 @@ public class MiniBank {
         for (Account account : accountStore.sortedByBalance()) {
             System.out.println(account);
         }
+
+        Repository<Account> accountRepository = new Repository<>();
+        accountRepository.saveAll(accounts);
+        System.out.println("\n--- Generic Account Repository ---");
+        Account foundAccount = accountRepository.findById(accounts[0].getAccountNumber());
+        System.out.println("Found account: " + foundAccount);
+        for (Account account : accountRepository.findAll()) {
+            System.out.println(account);
+        }
+        System.out.println("Average sample amount: "
+                + Repository.average(new Integer[] {100, 200, 300}));
 
         Account invalidAccount = new SavingsAccount("Invalid Customer", -100, 0);
         System.out.println("\n--- Annotation Validation Demo ---");
