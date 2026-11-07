@@ -4,11 +4,14 @@ import exception.AccountNotFoundException;
 import exception.BankException;
 import exception.InsufficientFundsException;
 import exception.InvalidAmountException;
+import java.io.Serializable;
 import java.util.Objects;
 import model.annotation.Id;
 import model.annotation.Positive;
 
-public abstract class Account implements Transactable, InterestBearing {
+public abstract class Account implements Transactable, InterestBearing, Serializable {
+    private static final long serialVersionUID = 1L;
+
     private static long accountCounter = 0;
     private static final Object TRANSFER_TIE_LOCK = new Object();
 

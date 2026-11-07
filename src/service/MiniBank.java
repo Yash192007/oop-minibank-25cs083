@@ -9,8 +9,14 @@ import model.FixedDepositAccount;
 import model.SavingsAccount;
 import model.WithdrawRule;
 import util.AnnotationValidator;
+import util.ReportGenerator;
+import util.StatePersister;
+import util.TransactionLog;
 import static util.Validator.isValidEmail;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 record BankInfo(String name, String branch) {}
@@ -58,6 +64,8 @@ public class MiniBank {
         for (Account acc : accounts) {
             System.out.println(acc.getAccountNumber() + " | Owner: " + acc.getOwnerName() + " | Type: " + acc.getClass().getSimpleName() + " | Interest Rate: " + acc.interestRate() + "%");
         }
+
+        runPersistenceAndReportingDemo(accounts);
 
         System.out.println("\n--- Testing canWithdraw & Polymorphic Withdrawals ---");
         WithdrawRule savingsRule = new WithdrawRule() {
@@ -279,6 +287,29 @@ public class MiniBank {
         joinUninterrupted(reverse);
         System.out.println("Both transfer threads completed without deadlock.");
         System.out.println("Combined balance: " + (first.getBalance() + second.getBalance()));
+    }
+
+    private static void runPersistenceAndReportingDemo(Account[] accounts) {
+        System.out.println("\n--- Persistence and End-of-Day Report ---");
+        Path stateFile = Paths.get("data", "accounts.ser");
+        Path logsDirectory = Paths.get("logs");
+        Path transactionLog = logsDirectory.resolve("transactions.log");
+        Path reportFile = Paths.get("reports", "end-of-day.txt");
+        try {
+            StatePersister.save(accounts, stateFile);
+            Account[] restoredAccounts = StatePersister.load(stateFile);
+            System.out.println("Reloaded accounts:");
+            for (Account account : restoredAccounts) {
+                System.out.println(account);
+            }
+
+            TransactionLog.append(transactionLog, "DEPOSIT,1500");
+            TransactionLog.append(transactionLog, "WITHDRAWAL,250");
+            String report = ReportGenerator.generate(logsDirectory, reportFile);
+            System.out.println(report);
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Persistence or report generation failed: " + e.getMessage());
+        }
     }
 
     private static void repeatTransfer(Account from, Account to) {
