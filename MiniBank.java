@@ -29,26 +29,31 @@ public class MiniBank {
         System.out.println("Welcome to " + bankInfo.name() + " (" + bankInfo.branch() + ")");
         System.out.println("========================================");
 
-        Account[] accounts = new Account[3];
-        accounts[0] = new Account("Aarav Sharma", 5000);
-        accounts[1] = new Account("Priya Patel", 10000);
-        accounts[2] = new Account("Rohan Mehta");
+        Customer.Address address = new Customer.Address("123 Station Road", "Ahmedabad", "380001");
+        Customer customer = new Customer("Aarav Sharma", "aarav@example.com", "9876543210", address);
 
-        System.out.println("\n--- Initial Account Details ---");
-        for (Account acc : accounts) {
-            System.out.println("Account: " + acc.getAccountNumber() + " | Owner: " + acc.getOwnerName() + " | Balance: " + acc.getBalance());
+        Account acc1 = new Account("Aarav Sharma", 5000);
+        Account acc2 = new Account("Priya Patel", 10000);
+        Account acc3 = new Account(acc1.getAccountNumber(), "Aarav Duplicate", 5000);
+
+        System.out.println("\n--- Testing toString() ---");
+        System.out.println(acc1);
+        System.out.println(acc2);
+
+        System.out.println("\n--- Testing equals() and hashCode() ---");
+        System.out.println("acc1 equals acc2: " + acc1.equals(acc2));
+        System.out.println("acc1 equals acc3 (Same Account Number): " + acc1.equals(acc3));
+
+        System.out.println("\n--- Testing instanceof Operator ---");
+        Object obj1 = acc1;
+        Object obj2 = customer;
+
+        if (obj1 instanceof Account) {
+            System.out.println("obj1 is an instance of Account: " + ((Account) obj1).getAccountNumber());
         }
 
-        accounts[0].deposit(2500);
-        accounts[1].withdraw(3000);
-        boolean withdrawStatus = accounts[2].withdraw(1000);
-
-        System.out.println("\n--- Transaction Executed ---");
-        System.out.println("Attempted withdrawal of 1000 from " + accounts[2].getAccountNumber() + ": " + (withdrawStatus ? "Successful" : "Failed (Insufficient Balance)"));
-
-        System.out.println("\n--- Updated Account Balances ---");
-        for (Account acc : accounts) {
-            System.out.println("Account: " + acc.getAccountNumber() + " | Owner: " + acc.getOwnerName() + " | Balance: " + acc.getBalance());
+        if (obj2 instanceof Customer) {
+            System.out.println("obj2 is an instance of Customer: " + ((Customer) obj2).getName() + " from " + ((Customer) obj2).getAddress());
         }
 
         Scanner scanner = new Scanner(System.in);
