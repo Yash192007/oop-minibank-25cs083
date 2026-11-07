@@ -1,5 +1,8 @@
 package service;
 
+import exception.BankException;
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
 import model.Account;
 import model.CurrentAccount;
 import model.FixedDepositAccount;
@@ -66,9 +69,55 @@ public class MiniBank {
         WithdrawRule generalRule = (account, amount) -> account.canWithdraw(amount);
         System.out.println("Savings withdrawal rule (9000): " + savingsRule.allow(accounts[0], 9000));
         System.out.println("General withdrawal rule (12000): " + generalRule.allow(accounts[1], 12000));
-        System.out.println("Savings Account withdrawal (9000 from 10000 with 2000 minBalance): " + accounts[0].withdraw(9000));
-        System.out.println("Current Account withdrawal (12000 from 5000 with 10000 overdraft): " + accounts[1].withdraw(12000));
-        System.out.println("Fixed Deposit Account withdrawal (5000): " + accounts[2].withdraw(5000));
+
+        try {
+            System.out.println("Savings Account withdrawal: " + accounts[0].withdraw(9000));
+        } catch (InsufficientFundsException e) {
+            System.out.println("Savings withdrawal declined: " + e.getMessage());
+        } catch (InvalidAmountException e) {
+            System.out.println("Savings withdrawal failed: " + e.getMessage());
+        } finally {
+            System.out.println("Savings withdrawal attempt completed.");
+        }
+
+        try {
+            System.out.println("Current Account withdrawal: " + accounts[1].withdraw(12000));
+        } catch (InsufficientFundsException e) {
+            System.out.println("Current account withdrawal declined: " + e.getMessage());
+        } catch (InvalidAmountException e) {
+            System.out.println("Current account withdrawal failed: " + e.getMessage());
+        } finally {
+            System.out.println("Current account withdrawal attempt completed.");
+        }
+
+        try {
+            System.out.println("Fixed Deposit Account withdrawal: " + accounts[2].withdraw(5000));
+        } catch (InsufficientFundsException e) {
+            System.out.println("Fixed deposit withdrawal declined: " + e.getMessage());
+        } catch (InvalidAmountException e) {
+            System.out.println("Fixed deposit withdrawal failed: " + e.getMessage());
+        } finally {
+            System.out.println("Fixed deposit withdrawal attempt completed.");
+        }
+
+        try {
+            accounts[0].deposit(0);
+        } catch (InvalidAmountException e) {
+            System.out.println("Deposit declined: " + e.getMessage());
+        }
+
+        Account transferSource = new CurrentAccount("Transfer Sender", 2000, 0);
+        Account transferDestination = new SavingsAccount("Transfer Recipient", 1000, 0);
+        try {
+            transferSource.transfer(transferDestination, 500);
+            System.out.println("Transfer completed. New destination balance: " + transferDestination.getBalance());
+        } catch (BankException e) {
+            System.out.println("Transfer declined: " + e.getMessage());
+        }
+
+        try (BankSession session = new BankSession()) {
+            System.out.println("Using a bank session resource.");
+        }
 
         System.out.println("\n--- Pattern Matching instanceof Check ---");
         for (Account acc : accounts) {
@@ -120,5 +169,12 @@ public class MiniBank {
         }
 
         scanner.close();
+    }
+
+    private static final class BankSession implements AutoCloseable {
+        @Override
+        public void close() {
+            System.out.println("Bank session resource closed.");
+        }
     }
 }

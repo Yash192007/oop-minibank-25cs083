@@ -18,6 +18,12 @@ public class CurrentAccount extends Account {
         return (this.balance - amount) >= -overdraftLimit;
     }
 
+    @Override
+    protected long withdrawalShortfall(long amount) {
+        long available = Math.max(0, balance + overdraftLimit);
+        return amount - available;
+    }
+
     public long getOverdraftLimit() {
         return overdraftLimit;
     }

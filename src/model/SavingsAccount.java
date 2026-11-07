@@ -18,6 +18,12 @@ public class SavingsAccount extends Account {
         return (this.balance - amount) >= minBalance;
     }
 
+    @Override
+    protected long withdrawalShortfall(long amount) {
+        long available = Math.max(0, balance - minBalance);
+        return amount - available;
+    }
+
     public long getMinBalance() {
         return minBalance;
     }

@@ -1,5 +1,9 @@
 package model;
 
+import exception.AccountNotFoundException;
+import exception.BankException;
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
 import java.util.Objects;
 import model.annotation.Id;
 import model.annotation.Positive;
@@ -42,20 +46,44 @@ public abstract class Account implements Transactable, InterestBearing {
 
     public abstract boolean canWithdraw(long amount);
 
-    @Override
-    public void deposit(long amount) {
-        if (amount > 0) {
-            this.balance += amount;
-        }
+    protected long withdrawalShortfall(long amount) {
+        return Math.max(0, amount - Math.max(0, balance));
     }
 
     @Override
-    public boolean withdraw(long amount) {
-        if (amount > 0 && canWithdraw(amount)) {
-            this.balance -= amount;
-            return true;
+    public void deposit(long amount) throws InvalidAmountException {
+        if (amount <= 0) {
+            throw new InvalidAmountException("Deposit amount must be greater than zero.");
         }
-        return false;
+        this.balance += amount;
+    }
+
+    @Override
+    public boolean withdraw(long amount) throws InsufficientFundsException, InvalidAmountException {
+        if (amount <= 0) {
+            throw new InvalidAmountException("Withdrawal amount must be greater than zero.");
+        }
+        if (!canWithdraw(amount)) {
+            long shortfall = withdrawalShortfall(amount);
+            throw new InsufficientFundsException(
+                    "Insufficient funds: short by " + shortfall + ".", shortfall);
+        }
+        this.balance -= amount;
+        return true;
+    }
+
+    public void transfer(Account to, long amount) throws BankException {
+        try {
+            if (to == null) {
+                throw new AccountNotFoundException("Destination account was not found.");
+            }
+            withdraw(amount);
+            to.deposit(amount);
+        } catch (BankException e) {
+            throw e;
+        } finally {
+            System.out.println("Transfer attempt finished.");
+        }
     }
 
     public String getAccountNumber() {

@@ -15,4 +15,9 @@ public class FixedDepositAccount extends Account implements Premium {
     public boolean canWithdraw(long amount) {
         return false;
     }
+
+    @Override
+    protected long withdrawalShortfall(long amount) {
+        return amount;
+    }
 }
