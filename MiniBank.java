@@ -29,6 +29,28 @@ public class MiniBank {
         System.out.println("Welcome to " + bankInfo.name() + " (" + bankInfo.branch() + ")");
         System.out.println("========================================");
 
+        Account[] accounts = new Account[3];
+        accounts[0] = new Account("Aarav Sharma", 5000);
+        accounts[1] = new Account("Priya Patel", 10000);
+        accounts[2] = new Account("Rohan Mehta");
+
+        System.out.println("\n--- Initial Account Details ---");
+        for (Account acc : accounts) {
+            System.out.println("Account: " + acc.getAccountNumber() + " | Owner: " + acc.getOwnerName() + " | Balance: " + acc.getBalance());
+        }
+
+        accounts[0].deposit(2500);
+        accounts[1].withdraw(3000);
+        boolean withdrawStatus = accounts[2].withdraw(1000);
+
+        System.out.println("\n--- Transaction Executed ---");
+        System.out.println("Attempted withdrawal of 1000 from " + accounts[2].getAccountNumber() + ": " + (withdrawStatus ? "Successful" : "Failed (Insufficient Balance)"));
+
+        System.out.println("\n--- Updated Account Balances ---");
+        for (Account acc : accounts) {
+            System.out.println("Account: " + acc.getAccountNumber() + " | Owner: " + acc.getOwnerName() + " | Balance: " + acc.getBalance());
+        }
+
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
 
