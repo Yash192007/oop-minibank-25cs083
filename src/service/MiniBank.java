@@ -152,6 +152,10 @@ public class MiniBank {
         System.out.println("Final balance: " + sharedAccount.getBalance()
                 + " (expected " + expectedBalance + ")");
 
+        runTransactionProcessorDemo();
+        runProducerConsumerDemo();
+        runOrderedTransferDemo();
+
         System.out.println("\n--- Pattern Matching instanceof Check ---");
         for (Account acc : accounts) {
             if (acc instanceof CurrentAccount ca) {
@@ -208,6 +212,97 @@ public class MiniBank {
         @Override
         public void close() {
             System.out.println("Bank session resource closed.");
+        }
+    }
+
+    private static void runTransactionProcessorDemo() {
+        System.out.println("\n--- Managed Transaction Processor ---");
+        Account account = new SavingsAccount("Processor Customer", 10000, 0);
+        TransactionProcessor processor = new TransactionProcessor();
+        for (int i = 0; i < 50; i++) {
+            processor.submit(new AccountTransaction(account, 10, true));
+            processor.submit(new AccountTransaction(account, 5, false));
+        }
+        processor.stop();
+        System.out.println("Processed 100 transactions. Final balance: " + account.getBalance());
+    }
+
+    private static void runProducerConsumerDemo() {
+        System.out.println("\n--- Producer-Consumer Transaction Buffer ---");
+        Account account = new SavingsAccount("Buffered Customer", 1000, 0);
+        TransactionBuffer buffer = new TransactionBuffer(3);
+
+        Thread consumer = new Thread(() -> {
+            try {
+                Runnable transaction;
+                while ((transaction = buffer.take()) != null) {
+                    transaction.run();
+                    System.out.println("Consumer processed a transaction.");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("Consumer was interrupted.");
+            }
+        }, "TransactionConsumer");
+
+        Thread producer = new Thread(() -> {
+            try {
+                for (int i = 0; i < 5; i++) {
+                    buffer.add(new AccountTransaction(account, 10, true));
+                    buffer.add(new AccountTransaction(account, 5, false));
+                    System.out.println("Producer added a transaction pair.");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("Producer was interrupted.");
+            } finally {
+                buffer.close();
+            }
+        }, "TransactionProducer");
+
+        consumer.start();
+        producer.start();
+        joinUninterrupted(producer);
+        joinUninterrupted(consumer);
+        System.out.println("Producer-consumer final balance: " + account.getBalance());
+    }
+
+    private static void runOrderedTransferDemo() {
+        System.out.println("\n--- Opposite-Direction Transfers with Ordered Locks ---");
+        Account first = new SavingsAccount("Transfer A", 1000, 0);
+        Account second = new SavingsAccount("Transfer B", 1000, 0);
+        Thread forward = new Thread(() -> repeatTransfer(first, second), "Transfer-A-to-B");
+        Thread reverse = new Thread(() -> repeatTransfer(second, first), "Transfer-B-to-A");
+        forward.start();
+        reverse.start();
+        joinUninterrupted(forward);
+        joinUninterrupted(reverse);
+        System.out.println("Both transfer threads completed without deadlock.");
+        System.out.println("Combined balance: " + (first.getBalance() + second.getBalance()));
+    }
+
+    private static void repeatTransfer(Account from, Account to) {
+        try {
+            for (int i = 0; i < 5; i++) {
+                from.transfer(to, 1);
+            }
+        } catch (BankException e) {
+            System.out.println(Thread.currentThread().getName() + " transfer failed: " + e.getMessage());
+        }
+    }
+
+    private static void joinUninterrupted(Thread thread) {
+        boolean interrupted = false;
+        while (thread.isAlive()) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                interrupted = true;
+                System.out.println("Waiting for " + thread.getName() + " to finish.");
+            }
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
         }
     }
 }

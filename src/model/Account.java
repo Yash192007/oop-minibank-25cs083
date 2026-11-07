@@ -10,6 +10,7 @@ import model.annotation.Positive;
 
 public abstract class Account implements Transactable, InterestBearing {
     private static long accountCounter = 0;
+    private static final Object TRANSFER_TIE_LOCK = new Object();
 
     @Id
     private final String accountNumber;
@@ -77,12 +78,33 @@ public abstract class Account implements Transactable, InterestBearing {
             if (to == null) {
                 throw new AccountNotFoundException("Destination account was not found.");
             }
-            withdraw(amount);
-            to.deposit(amount);
+            int order = getAccountNumber().compareTo(to.getAccountNumber());
+            if (order == 0) {
+                order = Integer.compare(System.identityHashCode(this), System.identityHashCode(to));
+            }
+            if (order < 0) {
+                transferWithLocks(this, to, to, amount);
+            } else if (order > 0) {
+                transferWithLocks(to, this, to, amount);
+            } else {
+                synchronized (TRANSFER_TIE_LOCK) {
+                    transferWithLocks(this, to, to, amount);
+                }
+            }
         } catch (BankException e) {
             throw e;
         } finally {
             System.out.println("Transfer attempt finished.");
+        }
+    }
+
+    private void transferWithLocks(Account firstLock, Account secondLock, Account destination, long amount)
+            throws BankException {
+        synchronized (firstLock) {
+            synchronized (secondLock) {
+                withdraw(amount);
+                destination.deposit(amount);
+            }
         }
     }
 
