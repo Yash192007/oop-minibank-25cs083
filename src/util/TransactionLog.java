@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 public class TransactionLog {
-    public static void append(Path file, String line) throws IOException {
+    public static synchronized void append(Path file, String line) throws IOException {
         Path parent = file.getParent();
         if (parent != null) {
             Files.createDirectories(parent);

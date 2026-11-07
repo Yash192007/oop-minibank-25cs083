@@ -16,6 +16,7 @@ public class ReportGenerator {
         long totalWithdrawals = 0;
         StringBuilder fileDetails = new StringBuilder();
 
+        Files.createDirectories(logsDirectory);
         try (DirectoryStream<Path> logFiles = Files.newDirectoryStream(logsDirectory, "*.log")) {
             for (Path logFile : logFiles) {
                 if (!Files.isRegularFile(logFile)) {

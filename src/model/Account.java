@@ -4,6 +4,8 @@ import exception.AccountNotFoundException;
 import exception.BankException;
 import exception.InsufficientFundsException;
 import exception.InvalidAmountException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Objects;
 import model.annotation.Id;
@@ -22,9 +24,16 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
     protected long balance;
     private boolean active;
 
-    private static String generateAccountNumber() {
+    private static synchronized String generateAccountNumber() {
         accountCounter++;
         return String.format("AC%04d", accountCounter);
+    }
+
+    private static synchronized void updateAccountCounter(String accountNumber) {
+        if (accountNumber != null && accountNumber.matches("AC\\d+")) {
+            long number = Long.parseLong(accountNumber.substring(2));
+            accountCounter = Math.max(accountCounter, number);
+        }
     }
 
     public Account(String ownerName, long balance) {
@@ -36,9 +45,15 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
 
     public Account(String accountNumber, String ownerName, long balance) {
         this.accountNumber = accountNumber;
+        updateAccountCounter(accountNumber);
         this.ownerName = ownerName;
         this.balance = balance;
         this.active = true;
+    }
+
+    private void readObject(ObjectInputStream input) throws IOException, ClassNotFoundException {
+        input.defaultReadObject();
+        updateAccountCounter(accountNumber);
     }
 
     public Account(String ownerName) {
