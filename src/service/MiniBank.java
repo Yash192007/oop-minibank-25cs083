@@ -5,6 +5,7 @@ import model.CurrentAccount;
 import model.FixedDepositAccount;
 import model.SavingsAccount;
 import model.WithdrawRule;
+import util.AnnotationValidator;
 import static util.Validator.isValidEmail;
 
 import java.util.Scanner;
@@ -43,6 +44,12 @@ public class MiniBank {
         accounts[0] = new SavingsAccount("Aarav Sharma", 10000, 2000);
         accounts[1] = new CurrentAccount("Priya Patel", 5000, 10000);
         accounts[2] = new FixedDepositAccount("Rohan Mehta", 50000);
+
+        Account invalidAccount = new SavingsAccount("Invalid Customer", -100, 0);
+        System.out.println("\n--- Annotation Validation Demo ---");
+        for (String error : AnnotationValidator.validate(invalidAccount)) {
+            System.out.println(error);
+        }
 
         System.out.println("\n--- Polymorphism Demo (interestRate) ---");
         for (Account acc : accounts) {
