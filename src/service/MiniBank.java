@@ -54,6 +54,17 @@ public class MiniBank {
         accounts[1] = new CurrentAccount("Priya Patel", 5000, 10000);
         accounts[2] = new FixedDepositAccount("Rohan Mehta", 50000);
 
+        AccountStore accountStore = new AccountStore();
+        for (Account account : accounts) {
+            accountStore.add(account);
+        }
+        accountStore.addTransaction("DEPOSIT,AC0001,500");
+        accountStore.addTransaction("WITHDRAWAL,AC0002,250");
+        System.out.println("\n--- Accounts Sorted by Balance ---");
+        for (Account account : accountStore.sortedByBalance()) {
+            System.out.println(account);
+        }
+
         Account invalidAccount = new SavingsAccount("Invalid Customer", -100, 0);
         System.out.println("\n--- Annotation Validation Demo ---");
         for (String error : AnnotationValidator.validate(invalidAccount)) {
@@ -227,6 +238,7 @@ public class MiniBank {
         System.out.println("\n--- Managed Transaction Processor ---");
         Account account = new SavingsAccount("Processor Customer", 10000, 0);
         TransactionProcessor processor = new TransactionProcessor();
+        processor.addAccount(account);
         for (int i = 0; i < 50; i++) {
             processor.submit(new AccountTransaction(account, 10, true));
             processor.submit(new AccountTransaction(account, 5, false));
